@@ -1,0 +1,102 @@
+{
+  "version": "1.4.0",
+  "project": "apache/commons-lang",
+  "checks": [
+    {
+      "operation": "overview",
+      "channel": "sdk",
+      "status": "partial",
+      "complete_result_equal": true
+    },
+    {
+      "operation": "overview",
+      "channel": "cli",
+      "status": "partial",
+      "complete_result_equal": true
+    },
+    {
+      "operation": "trace",
+      "channel": "sdk",
+      "status": "ok",
+      "complete_result_equal": true
+    },
+    {
+      "operation": "trace",
+      "channel": "cli",
+      "status": "ok",
+      "complete_result_equal": true
+    },
+    {
+      "operation": "overview",
+      "channel": "mcp-stdio",
+      "status": "partial",
+      "complete_result_equal": true
+    },
+    {
+      "operation": "trace",
+      "channel": "mcp-stdio",
+      "status": "ok",
+      "complete_result_equal": true
+    },
+    {
+      "operation": "overview",
+      "channel": "http",
+      "status": "partial",
+      "complete_result_equal": true
+    },
+    {
+      "operation": "trace",
+      "channel": "http",
+      "status": "ok",
+      "complete_result_equal": true
+    },
+    {
+      "operation": "overview",
+      "channel": "mcp-http",
+      "status": "partial",
+      "complete_result_equal": true
+    },
+    {
+      "operation": "trace",
+      "channel": "mcp-http",
+      "status": "ok",
+      "complete_result_equal": true
+    },
+    {
+      "operation": "overview",
+      "channel": "prior-interface-1.3.0",
+      "complete_result_equal": true
+    },
+    {
+      "operation": "trace",
+      "channel": "prior-interface-1.3.0",
+      "complete_result_equal": true
+    }
+  ],
+  "normalization": "Excluded only top-level timings and generated_at; all other report fields compared.",
+  "scope": "Transport/result regression, not a new upstream speed or accuracy benchmark.",
+  "contract_tests": {
+    "passed": 28,
+    "skipped": 1,
+    "reason": "Windows did not grant symbolic-link creation privileges."
+  },
+  "base_install": {
+    "installed_distributions": [
+      "codetracker-agent",
+      "refactoringminer-agent"
+    ],
+    "mcp_installed": false,
+    "convenience_methods": {
+      "review": "ok",
+      "overview": "partial",
+      "trace": "ok"
+    }
+  },
+  "environment": {
+    "os": "Windows",
+    "python": "3.12.14",
+    "java": "21",
+    "mcp_sdk": "2.3.0"
+  },
+  "agent_verification": "Six generated host configurations parsed and launched; official MCP tools/list and tools/call verified. Native host UI end-to-end tasks not verified."
+}

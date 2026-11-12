@@ -1,0 +1,33 @@
+[build-system]
+requires = ["hatchling>=1.27,<2"]
+build-backend = "hatchling.build"
+
+[project]
+name = "codetracker-agent"
+version = "1.4.0"
+description = "Independent Java analysis SDK, HTTP and MCP tools for agents"
+readme = "README.md"
+requires-python = ">=3.11"
+authors = [{name = "William-StarX"}]
+license-files = ["LICENSES/*"]
+dependencies = []
+
+[project.optional-dependencies]
+server = ["mcp==2.3.0", "uvicorn>=0.30,<1"]
+test = ["pytest>=8,<10", "build>=1,<2"]
+
+[project.scripts]
+codetracker-agent = "codetracker_agent.cli:main"
+
+[project.urls]
+Repository = "https://github.com/William-StarX/Tracker"
+Issues = "https://github.com/William-StarX/Tracker/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/codetracker_agent"]
+
+[tool.hatch.build.targets.sdist]
+include = ["src", "tests", "docs", "LICENSES", "README.md", "NOTICE.md", "PRIVACY.md", "CHANGELOG.md", "pyproject.toml", ".github", ".gitignore", ".gitattributes", "tools"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

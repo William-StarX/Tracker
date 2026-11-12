@@ -1,0 +1,50 @@
+{
+  "component": "codetracker-investigate",
+  "files": [
+    {
+      "path": "src/codetracker_agent/_vendor/components/codetracker-investigate/assets/java/pom.xml",
+      "sha256": "d14430774631a479ce6296e24016466de1eaceab829f2170ccce034dfcb1b917",
+      "matches_component_1_2_0": true
+    },
+    {
+      "path": "src/codetracker_agent/_vendor/components/codetracker-investigate/assets/java/src/main/java/gr/uom/java/xmi/decomposition/ReplacementUtil.java",
+      "sha256": "4ec321dfa1a07d465f42cef37f4711c1bcf6d4cdc55c2bc434fa8b9110991092",
+      "matches_component_1_2_0": true
+    },
+    {
+      "path": "src/codetracker_agent/_vendor/components/codetracker-investigate/assets/java/src/main/java/gr/uom/java/xmi/diff/StringDistance.java",
+      "sha256": "105e6ba5d073f6dd65341b521ff7e505466860b771cfa6351d51332ab0481a3d",
+      "matches_component_1_2_0": true
+    },
+    {
+      "path": "src/codetracker_agent/_vendor/components/codetracker-investigate/assets/java/src/main/java/org/localtools/codetracker/TraceMain.java",
+      "sha256": "b2ff298725ed321d68c149a610549f0e265b30bd0dba8b62fa0e7aafc5bfc607",
+      "matches_component_1_2_0": true
+    },
+    {
+      "path": "src/codetracker_agent/_vendor/components/codetracker-investigate/assets/java/src/main/resources/META-INF/LICENSE.RefactoringMiner",
+      "sha256": "039b9b04be8ea57cd002b4d15d16e6d53448c6ad8ed97dd73970f42954f2a44b",
+      "matches_component_1_2_0": true
+    },
+    {
+      "path": "src/codetracker_agent/_vendor/components/codetracker-investigate/scripts/overview.py",
+      "sha256": "82fe6789e87da6d5bd42f4ee15eb9661085f5c92886440bb1b355519860cfd67",
+      "matches_component_1_2_0": true
+    },
+    {
+      "path": "src/codetracker_agent/_vendor/components/codetracker-investigate/scripts/reporting.py",
+      "sha256": "3816e10abe2d8c0b2454adf09551416431999e495b141792f930566133488eed",
+      "matches_component_1_2_0": true
+    },
+    {
+      "path": "src/codetracker_agent/_vendor/components/codetracker-investigate/scripts/runtime.py",
+      "sha256": "f8b621ddb69010bcdd89613cfa6819bb75f08df65be712ddc51319fffac1468d",
+      "matches_component_1_2_0": true
+    },
+    {
+      "path": "src/codetracker_agent/_vendor/components/codetracker-investigate/scripts/trace.py",
+      "sha256": "63d90ef9196d47fb762cb2c5e4d5138462e8822b063d2e3e8962c692d5b21812",
+      "matches_component_1_2_0": true
+    }
+  ]
+}

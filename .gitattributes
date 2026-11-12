@@ -1,0 +1,2 @@
+* text=auto eol=lf
+src/**/_vendor/** -text -whitespace
