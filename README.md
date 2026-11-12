@@ -8,31 +8,19 @@ SDK / service **1.5.0** · Result interface **1.0** · CodeTracker **3.0**
 
 ## 中文
 
-### 作用是什么
+拿到一个旧 Java 仓库，Agent 往往先要弄清两件事：从哪里开始读，以及眼前这段代码是怎么来的。
 
-**帮助 Agent 接手已有 Java 项目，并用代码演变证据支持缺陷调查和历史审查。**
+CodeTracker Agent 为这两件事提供了两个入口。`overview` 扫描项目结构，找出模块、入口和测试线索；`trace` 从指定提交出发，沿历史追踪一个方法、局部变量或代码块。前者是本项目编写的扫描器，后者调用 CodeTracker 作者库。
 
-接手旧项目时，Agent 需要先找到模块、入口、依赖和测试；调查问题时，还需要知道某个方法、局部变量或控制结构何时、如何发生变化。本组件把这两项工作做成可独立调用的工具：
+### 从项目里找到调查入口
 
-- **`overview`：项目概览。** 扫描当前工作区，返回结构和阅读线索，帮助 Agent 制定后续计划。这是本项目编写的扫描器。
-- **`trace`：元素历史追踪。** 调用 CodeTracker 作者库，追踪指定提交中的方法、局部变量或代码块，返回相关提交、变化事件和前后代码位置。
+刚接手项目，可以先跑概览。模块和依赖声明帮助 Agent 判断要读哪一部分，包结构、入口注解和测试文件则给出具体的阅读位置。Root Agent 可以据此安排后续调查，再阅读代码确认模块职责。
 
-例如：Agent 调查一处日期边界问题时，可先从概览找到相关模块和测试，再选择关键条件所在的已提交代码块，追踪它的演变，阅读相关提交并设计回归测试。**历史变化为原因假设提供证据；最近修改过某段代码，并不证明该修改导致了缺陷。**
+如果已经知道问题出在某个方法，就直接追踪那个元素。例如，一个日期判断为何多了一层条件，可以沿历史找到相关修改，再阅读提交说明、前后实现和测试。即使代码曾改名或移动，CodeTracker 也会尝试恢复它的沿革。
 
-### 能帮助 Agent 干什么
+这些结果能缩小调查范围，但“在哪次提交改过”和“为什么出现缺陷”仍是两件事。原因需要结合代码和测试验证。修复完成后的补丁审查，可以交给另一个独立工具 [RefactoringMiner Agent](https://github.com/William-StarX/RefactoringMiner)。
 
-| 工作场景 | 组件提供什么 | Agent 如何使用 |
-|---|---|---|
-| Root Agent 接管陌生旧项目 | 模块与依赖声明、包结构、入口和测试线索，以及可用的 Git 活动信息 | 选择先读哪些文件、在哪里实现、应检查哪些测试 |
-| 缺陷调查 | 相关方法、局部变量或控制结构的提交历史与变化事件 | 缩小历史阅读范围，提出并验证原因假设 |
-| 理解复杂旧代码 | 元素前后位置、重命名或移动等演变线索 | 跟随代码沿革，结合提交说明解释当前实现 |
-| 项目继续与 Agent 交接 | 目标提交、选中元素、完整报告与覆盖限制 | 复用可追溯的证据，避免把旧概览当作当前状态 |
-
-适用于能调用本地进程、Python SDK、HTTP 或 MCP 工具的 Agent。统一接口让不同 Agent 直接获取结构化证据；Skill 和 MCP 指引告诉它们在相关项目阶段主动调用。
-
-完成实现和测试后，可搭配独立的 [RefactoringMiner Agent](https://github.com/William-StarX/RefactoringMiner) 审查候选补丁。两个组件可以分别使用，不要求安装另一方的 SDK。
-
-### 快速开始
+### 先跑一次项目概览
 
 基础 SDK 需要 **Python 3.11+**，没有第三方 Python 依赖。**仅运行项目概览不需要 Java，也不要求有 Git 历史**；有 Git 时可额外收集活动信息。下方从 GitHub 安装的命令需要 Git。
 
@@ -48,6 +36,8 @@ report = client.overview("/path/to/repo")
 print(report["status"])
 print(report["result"])  # 组件报告，包含证据、警告、限制和来源
 ```
+
+### 追踪一段代码
 
 历史追踪另需 **Java 17+ 和本地 Git 仓库历史**；首次准备引擎需要 **JDK 和网络**：
 
@@ -88,9 +78,9 @@ codetracker-agent call --request request.json
 
 `call` 也接受标准输入。`describe` 返回 `overview`、`trace` 的参数、响应 Schema 和调用阶段指引。
 
-### 接入 Agent，并在关键阶段主动调用
+### 在项目中持续使用
 
-提供四种调用入口：Python `Client` / `HTTPClient`、JSON CLI、MCP stdio / Streamable HTTP，以及认证 HTTP API。HTTP/MCP 服务需安装可选依赖：
+已有 Python Agent 可以直接用上面的 `Client`，能运行命令的 Agent 可以调用 JSON CLI。要让支持 MCP 的宿主发现这两个工具，先安装服务依赖并生成配置：
 
 ```sh
 python -m pip install "codetracker-agent[server] @ git+https://github.com/William-StarX/Tracker.git"
@@ -107,15 +97,15 @@ codetracker-agent install-skill --destination .agents/skills
 
 该目录是 Codex 项目示例，其他宿主应使用其发现目录。安装器不覆盖已有 Skill，可加 `--java-home`、`--cache-dir`；生成的 `runtime.local.json` 仅保留在本机。
 
-已加载 Skill 或 MCP 指引的 Agent，应在以下阶段主动调用，无需用户每轮再次点名：
+加载 Skill 或 MCP 指引后，Agent 会被要求在这些时候使用工具：
 
 1. 接管陌生 Java 旧项目、制定计划前，用 `overview` 建立结构线索。
 2. 缺陷或历史调查中，确定相关已提交元素后，用 `trace` 获取演变证据。
 3. 模块、依赖、入口或测试结构变化后，若后续工作需要旧概览，则更新概览。
 
-已知目标可直接追踪，无需每轮重复全项目扫描。跨聊天继续项目时，宿主应继续加载指引，保存报告引用、目标提交和覆盖限制；当前工作区变化可能使旧概览过期。**这些指引由 Agent 执行；强制保证某个流程节点已经运行，需要宿主调度器接入。** SDK 自身不监听项目流程，也不恢复聊天记录。详见 [阶段规则](docs/WORKFLOW.md)。
+不必每轮聊天都扫描仓库，也不必追踪每个方法。把调查过的提交、选中元素和报告位置留在任务记录中，下次可以接着查；概览描述的是工作区，相关文件变了就要重新判断它是否仍适用。跨聊天使用还需要宿主继续加载指引，工具本身不保存对话。若要保证指定步骤一定执行，需要在宿主流程中接入调用。详见 [调查流程](docs/WORKFLOW.md)。
 
-需要 HTTP 时，先将 `JAVA_AGENT_TOKEN` 设置为至少 32 字符的随机令牌，再运行：
+也可把调查工具作为本地 HTTP 服务使用，配合 `HTTPClient`、`/invoke` 或 MCP Streamable HTTP `/mcp` 调用。先将 `JAVA_AGENT_TOKEN` 设为至少 32 字符的随机令牌：
 
 ```sh
 codetracker-agent http --root /path/to/repo --port 8766
@@ -123,7 +113,7 @@ codetracker-agent http --root /path/to/repo --port 8766
 
 服务监听 `127.0.0.1`；`/health`、`/tools`、`/invoke` 和 `/mcp` 均需 Bearer 认证。只允许配置目录中的目标，建议使用普通独立 clone；远程访问需自行配置可信 TLS 通道，路径指服务端路径。完整协议见 [API](docs/API.md)。
 
-### 如何理解结果与开销
+### 调查范围与运行开销
 
 - 检查 `status`：`ok`、`partial` 或 `error`。`partial` 必须结合警告、限制和截断信息解释；HTTP 200 或退出码 0 不等于完整分析。
 - 概览中的声明、注解和测试文件是阅读线索，不是已经验证的调用图、有效依赖图或业务架构；Agent 需要继续阅读相关代码。
@@ -132,7 +122,7 @@ codetracker-agent http --root /path/to/repo --port 8766
 - 每个 Client / 服务实例一次执行一个分析，忙时返回 `BUSY`。概览不启动 Java；追踪按请求启动 Java，无常驻 JVM、数据库或 GPU。Java 堆默认上限 2048 MiB，可用 `memory_mb` 调整，但这不是整个进程树的内存上限。封装便利性不代表所有输入都更快或更省内存。
 - 分析在本地执行，组件不调用模型、不上传源码、不发送遥测，也不运行目标项目的构建或测试。报告可能含源码、提交信息和路径，宿主 Agent 仍可能把结果发送给其模型提供商。见 [隐私说明](PRIVACY.md)。
 
-### 论文与上游项目
+### CodeTracker 的研究来源
 
 历史追踪基于作者的 [jodavimehran/code-tracker](https://github.com/jodavimehran/code-tracker)，固定使用 Maven `io.github.jodavimehran:code-tracker:3.0`。相关研究包括：
 
@@ -143,9 +133,9 @@ codetracker-agent http --root /path/to/repo --port 8766
 
 **项目概览扫描器并非上述论文中的 CodeTracker 算法。** 论文实验结果属于上游研究设置，不等同于本封装在任意项目上的质量或性能保证。
 
-### 本项目新增了什么
+### 关于项目概览和封装
 
-本仓库是**基于作者库的独立 Agent 适配项目**，不是作者官方仓库或完整镜像。本项目提供项目概览扫描、目标定位与 Java 调用桥接、统一 JSON、资源限制、SDK、CLI、HTTP/MCP、宿主配置与 Skill 阶段指引；业务解释和缺陷原因判断由调用它的 Agent 完成。
+这里的项目概览、SDK、命令行和服务接入由本项目实现。历史追踪交给 CodeTracker，封装负责把 Agent 指定的提交和代码位置传给它，再返回 JSON 报告。这是对作者库的独立适配，未复制整个上游项目。
 
 分析引擎保留了 RefactoringMiner 两处经差分测试的局部优化：`StringDistance.java` 和 `ReplacementUtil.keepReservedTokens`。上游 CodeTracker 固定版本的源码 LICENSE 与 Maven POM 存在许可元数据差异，已在 [NOTICE](NOTICE.md) 中记录。本仓库不分发组合引擎二进制，也不将第三方 MIT 文件视作全仓库的统一许可证；来源与许可状态请以该说明为准。
 
@@ -165,31 +155,19 @@ python -m build
 
 ## English
 
-### What it does
+An agent opening an unfamiliar Java repository usually has two questions: where to start reading, and how the code in front of it got there.
 
-**Helps agents take over existing Java projects and use code evolution evidence during bug investigation and historical review.**
+CodeTracker Agent provides an entry point for each. `overview` scans the project for modules, entry points, and tests. `trace` follows a method, local variable, or block through history, starting at a chosen commit. The overview scanner belongs to this project; history tracking uses the authors' CodeTracker library.
 
-An agent entering a legacy project first needs to find modules, entry points, dependencies, and tests. During an investigation, it also needs to understand when and how a particular method, local variable, or control structure changed. This component exposes two independently callable tools:
+### Finding a place to start
 
-- **`overview`: project survey.** Scans the current worktree and returns structural evidence and reading leads for planning. This scanner is implemented by this project.
-- **`trace`: element history.** Invokes the authors' CodeTracker library to follow a method, local variable, or block from a selected commit, returning related commits, change events, and before/after locations.
+Run an overview when first taking on a project. Module and dependency declarations help the agent choose a part of the repository to inspect. Packages, entry-point annotations, and test files point to specific places to read. A root agent can use these leads to plan the investigation, then check the source to establish what each module does.
 
-For example, an agent investigating a date boundary issue can use the overview to find relevant modules and tests, select the committed block containing the key condition, trace its evolution, inspect the relevant commits, and design regression tests. **Historical changes support causal hypotheses; a recent edit alone does not prove the origin of a defect.**
+If the problem is already narrowed down to a method, trace that element directly. To investigate an extra condition in a date check, for example, follow its history to the relevant changes, then read the commit messages, earlier implementations, and tests. CodeTracker attempts to follow the element even when it has been renamed or moved.
 
-### How it helps an agent
+This narrows the investigation, but identifying a change does not establish the cause of a bug. That still takes source inspection and tests. Once a fix is ready, the separate [RefactoringMiner Agent](https://github.com/William-StarX/RefactoringMiner) can help review the patch.
 
-| Task | Evidence provided | How the agent uses it |
-|---|---|---|
-| A root agent takes over an unfamiliar project | Module and dependency declarations, packages, entry-point and test hints, and available Git activity | Decide what to read first, where to implement, and which tests to inspect |
-| Investigate a bug | Commit history and change events for relevant methods, local variables, or control structures | Narrow historical reading and formulate testable hypotheses |
-| Understand complex legacy code | Before/after locations and evolution through changes such as renames or moves | Follow code history and interpret the implementation alongside commit context |
-| Resume a project or hand work to another agent | Target commits, selected elements, complete reports, and coverage limits | Reuse traceable evidence without treating an old overview as current state |
-
-Agents can use a local process, Python SDK, HTTP, or MCP. A consistent interface supplies structured evidence; Skill and MCP guidance tell agents when to invoke the tools at relevant project checkpoints.
-
-After implementation and tests, optionally use the independent [RefactoringMiner Agent](https://github.com/William-StarX/RefactoringMiner) to review the candidate patch. Either component works independently and does not require the other agent SDK.
-
-### Quick start
+### Start with the project layout
 
 The base SDK requires **Python 3.11+** and has no third-party Python dependencies. **Project overview requires neither Java nor Git history**; Git activity can be included when Git is available. The GitHub installation command below requires Git.
 
@@ -205,6 +183,8 @@ report = client.overview("/path/to/repo")
 print(report["status"])
 print(report["result"])  # Component report: evidence, warnings, limits, and provenance
 ```
+
+### Follow a method, variable, or block
 
 History tracking additionally requires **Java 17+ and local Git repository history**. Initial engine preparation requires a **JDK and network access**:
 
@@ -245,9 +225,9 @@ codetracker-agent call --request request.json
 
 `call` also accepts standard input. `describe` returns parameters for `overview` and `trace`, response schemas, and checkpoint guidance.
 
-### Connect an agent and use it at project checkpoints
+### Keep it available during a project
 
-Four entry points are available: Python `Client` / `HTTPClient`, JSON CLI, MCP stdio / Streamable HTTP, and an authenticated HTTP API. Install optional dependencies for HTTP/MCP services:
+A Python agent can use `Client` directly; an agent that can run commands can use the JSON CLI. To expose both tools to an MCP host, install the service dependencies and generate a configuration:
 
 ```sh
 python -m pip install "codetracker-agent[server] @ git+https://github.com/William-StarX/Tracker.git"
@@ -264,15 +244,15 @@ codetracker-agent install-skill --destination .agents/skills
 
 This destination is a Codex project example; use your host's discovery directory. The installer refuses to overwrite an existing Skill and accepts `--java-home` and `--cache-dir`. Keep the generated `runtime.local.json` on the local machine.
 
-An agent with the Skill or MCP guidance loaded should proactively invoke the component at these checkpoints without requiring the user to name it again:
+Once loaded, the Skill or MCP instructions ask the agent to use the tools at these points:
 
 1. Before planning work in an unfamiliar existing Java project, use `overview` to establish structural leads.
 2. During bug or historical investigation, use `trace` once a relevant committed element is identified.
 3. After module, dependency, entry-point, or test-layout changes, refresh an overview if subsequent work depends on it.
 
-Known targets can be traced directly; a full project scan is not needed every turn. Across chats, the host should keep loading the guidance and retain report references, target commits, and coverage limits. Worktree changes may make an old overview stale. **The agent follows these instructions; guaranteed execution at a workflow node requires host scheduler integration.** The SDK neither monitors project progress nor restores chat history. See [checkpoint behavior](docs/WORKFLOW.md).
+There is no need to scan the repository every turn or trace every method. Keep the investigated commits, selected elements, and report locations in the task notes so work can continue from them. An overview describes the worktree, so reconsider it when relevant files change. Across chats, the host must keep loading the instructions; the tool does not store conversations. Required execution at a particular step needs a call wired into the host's workflow. See the [investigation workflow](docs/WORKFLOW.md).
 
-For HTTP, first set `JAVA_AGENT_TOKEN` to a random token of at least 32 characters, then run:
+You can also run a local HTTP service and call it through `HTTPClient`, `/invoke`, or MCP Streamable HTTP at `/mcp`. First set `JAVA_AGENT_TOKEN` to a random token of at least 32 characters:
 
 ```sh
 codetracker-agent http --root /path/to/repo --port 8766
@@ -280,7 +260,7 @@ codetracker-agent http --root /path/to/repo --port 8766
 
 The service binds to `127.0.0.1`. `/health`, `/tools`, `/invoke`, and `/mcp` all require Bearer authentication. Targets must stay within configured roots; use a regular independent clone. Remote access requires an operator-configured trusted TLS channel, and paths refer to the server's filesystem. See the [API](docs/API.md).
 
-### Interpreting results and resource use
+### Tracking scope and resource use
 
 - Check `status`: `ok`, `partial`, or `error`. Interpret `partial` with warnings, limitations, and truncation information. HTTP 200 or exit code 0 does not establish complete analysis.
 - Declarations, annotations, and test files in an overview are reading leads, not a verified call graph, effective dependency graph, or business architecture. The agent needs to inspect the relevant source.
@@ -289,7 +269,7 @@ The service binds to `127.0.0.1`. `/health`, `/tools`, `/invoke`, and `/mcp` all
 - Each Client / service instance runs one analysis at a time and returns `BUSY` to concurrent callers. Overview does not start Java; tracking starts Java per request, with no persistent JVM, database, or GPU requirement. The default Java heap ceiling is 2048 MiB, configurable with `memory_mb`; this is not a process-tree memory limit. Easier integration does not imply lower time or memory use on every input.
 - Analysis runs locally. The component does not call models, upload source, send telemetry, or run the target project's build or tests. Reports may contain source, commit information, and paths, and the host agent may forward results to its model provider. See [privacy](PRIVACY.md).
 
-### Papers and upstream project
+### The research behind CodeTracker
 
 History tracking uses the authors' [jodavimehran/code-tracker](https://github.com/jodavimehran/code-tracker), pinned to Maven `io.github.jodavimehran:code-tracker:3.0`. Relevant research includes:
 
@@ -300,9 +280,9 @@ Bibliographic details follow the [upstream citation guide](https://github.com/jo
 
 **The project overview scanner is not the CodeTracker algorithm described in these papers.** Published results apply to the upstream research settings; they do not guarantee this wrapper's quality or performance on arbitrary projects.
 
-### What this project adds
+### About the scanner and integration
 
-This repository is an **independent agent integration built on the authors' library**, not the official upstream repository or a complete mirror. It provides project scanning, target selection and a Java bridge, consistent JSON, resource controls, SDK, CLI, HTTP/MCP, host configuration, and Skill checkpoint guidance. The calling agent interprets business behavior and evaluates defect causes.
+The project overview, SDK, command line, and service integration are implemented here. CodeTracker handles historical tracking: the wrapper passes it the agent's chosen commit and source location, then returns a JSON report. This is a separate integration of the authors' library, without a copy of the full upstream project.
 
 The engine retains two local RefactoringMiner optimizations checked by differential tests: `StringDistance.java` and `ReplacementUtil.keepReservedTokens`. The pinned upstream CodeTracker source LICENSE and Maven POM have different licensing metadata, documented in [NOTICE](NOTICE.md). This repository does not distribute combined engine binaries, and third-party MIT files do not establish a repository-wide MIT license. Consult that notice for provenance and licensing status.
 
