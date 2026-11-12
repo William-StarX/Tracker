@@ -1,6 +1,7 @@
 """Local and HTTP SDK clients; no third-party dependency for either client."""
 from __future__ import annotations
 
+import copy
 import json
 import os
 from pathlib import Path
@@ -14,6 +15,7 @@ from . import _core
 from ._meta import OPERATIONS
 from .models import AnalysisResult, TransportError
 from ._operations import Operations
+from .workflow import INSTRUCTIONS, CHECKPOINTS
 
 
 class Client(Operations):
@@ -55,6 +57,8 @@ class Client(Operations):
 
     def describe(self, *, analysis_only: bool = False) -> dict:
         result = _core.describe()
+        result["instructions"] = INSTRUCTIONS
+        result["checkpoints"] = copy.deepcopy(CHECKPOINTS)
         if analysis_only:
             result["tools"] = [tool for tool in result["tools"] if tool["name"] in OPERATIONS]
         return result

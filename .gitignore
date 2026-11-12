@@ -21,4 +21,5 @@ target/
 hs_err_pid*
 replay_pid*
 local-config.*
+runtime.local.json
 reports/

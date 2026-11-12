@@ -28,7 +28,7 @@ FORBIDDEN_SUFFIXES = {".jar", ".class", ".jfr", ".pyc", ".pem", ".key", ".p12", 
 def scan(name, data, forbidden):
     path = PurePosixPath(name)
     findings = []
-    if FORBIDDEN_PARTS.intersection(path.parts) or path.suffix.lower() in FORBIDDEN_SUFFIXES or path.name.startswith((".env", "hs_err_pid", "replay_pid")):
+    if FORBIDDEN_PARTS.intersection(path.parts) or path.suffix.lower() in FORBIDDEN_SUFFIXES or path.name == "runtime.local.json" or path.name.startswith((".env", "hs_err_pid", "replay_pid")):
         findings.append({"file": name, "rule": "excluded_artifact"})
     try:
         content = data.decode("utf-8")

@@ -168,6 +168,7 @@ def test_agent_configuration_starts_mcp(module_name, tmp_path, host):
 
     async def run():
         async with Client(parameters, mode="legacy", read_timeout_seconds=30) as client:
+            assert client.instructions == importlib.import_module(module_name).Client().describe()["instructions"]
             listing = await client.list_tools()
             assert len(listing.tools) == 2
             assert "prepare" not in [item.name for item in listing.tools]
@@ -200,6 +201,7 @@ def test_stdio_auto_negotiation(module_name, tmp_path):
     async def run():
         parameters = StdioServerParameters(command=sys.executable, args=["-m", module_name, "mcp", "--root", str(tmp_path)])
         async with Client(parameters, read_timeout_seconds=30) as client:
+            assert client.instructions == importlib.import_module(module_name).Client().describe()["instructions"]
             assert len((await client.list_tools()).tools) == 2
     asyncio.run(run())
 
@@ -250,8 +252,39 @@ def test_http_sdk_and_mcp(package, module_name, tmp_path, http_process):
     async def run():
         async with httpx2.AsyncClient(headers={"Authorization": "Bearer " + token}) as http:
             async with Client(streamable_http_client(url + "/mcp", http_client=http), mode="legacy") as client:
+                assert client.instructions == package.Client().describe()["instructions"]
                 listing = await client.list_tools()
                 assert len(listing.tools) == 2
                 response = await client.call_tool(operation(module_name), {"repo": str(tmp_path), "max_files": 0})
                 assert response.is_error and response.structured_content["status"] == "error"
     asyncio.run(run())
+
+
+def test_checkpoint_catalog_isolated_and_valid(package):
+    client = package.Client()
+    catalog = client.describe(analysis_only=True)
+    tools = {item["name"] for item in catalog["tools"]}
+    assert catalog["instructions"]
+    assert catalog["checkpoints"]
+    assert all(set(item["tools"]) <= tools for item in catalog["checkpoints"])
+    catalog["checkpoints"][0]["tools"].clear()
+    assert client.describe()["checkpoints"][0]["tools"]
+
+
+def test_skill_install_and_bound_launcher(package, module_name, tmp_path):
+    installer = importlib.import_module(module_name + ".skill")
+    destination = installer.install(str(tmp_path / "skills"))
+    binding = json.loads((destination / "runtime.local.json").read_text(encoding="utf-8"))
+    assert binding == {"python": sys.executable}
+    result = subprocess.run([sys.executable, "-B", "-X", "utf8", str(destination / "scripts/run.py"), "describe"],
+                            capture_output=True, check=True)
+    assert json.loads(result.stdout) == package.Client().describe()
+
+
+def test_skill_install_preserves_existing_content(module_name, tmp_path):
+    installer = importlib.import_module(module_name + ".skill")
+    destination = installer.install(str(tmp_path / "skills"))
+    (destination / "SKILL.md").write_text("Local customization", encoding="utf-8")
+    with pytest.raises(ValueError, match="already exists"):
+        installer.install(str(tmp_path / "skills"))
+    assert (destination / "SKILL.md").read_text() == "Local customization"

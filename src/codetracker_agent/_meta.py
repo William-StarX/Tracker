@@ -1,4 +1,4 @@
-VERSION = '1.4.0'
+VERSION = '1.5.0'
 DISTRIBUTION = 'codetracker-agent'
 MODULE = 'codetracker_agent'
 SERVER_NAME = 'codetracker-agent'

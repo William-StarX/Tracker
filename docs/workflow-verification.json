@@ -1,0 +1,36 @@
+{
+  "version": "1.5.0",
+  "tests": {
+    "passed": 31,
+    "skipped": 1,
+    "skip_reason": "Windows symbolic-link creation not permitted"
+  },
+  "installed_skill_check": {
+    "repository": "Tracker",
+    "skill": "codetracker-investigate",
+    "operation": "trace",
+    "status": "ok",
+    "complete_result_equal_to_prior": true
+  },
+  "instruction_transport_verified": [
+    "MCP legacy stdio",
+    "MCP auto stdio",
+    "MCP HTTP",
+    "CLI catalog"
+  ],
+  "implicit_invocation_enabled": true,
+  "deterministic_host_scheduling_implemented": false,
+  "initial_timeout_then_full_retry_passed": false,
+  "local_host_discovery": [
+    {
+      "name": "codetracker-investigate",
+      "enabled": true,
+      "scope": "user"
+    },
+    {
+      "name": "refactoringminer-review",
+      "enabled": true,
+      "scope": "user"
+    }
+  ]
+}

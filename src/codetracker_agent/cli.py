@@ -27,6 +27,10 @@ def main(argv=None) -> int:
     prepare.add_argument("--timeout", type=int, default=600)
     call = commands.add_parser("call", help="Read one JSON request from stdin or a file")
     call.add_argument("--request", help="UTF-8 JSON file (default: stdin)")
+    skill = commands.add_parser("install-skill", help="Export an implicitly discoverable skill; no overwrites")
+    skill.add_argument("--destination", required=True, help="Parent skills directory for the chosen host or project")
+    skill.add_argument("--java-home")
+    skill.add_argument("--cache-dir")
     for mode in ("mcp", "http", "config"):
         command = commands.add_parser(mode)
         command.add_argument("--root", action="append", required=True, help="Authorized project directory; repeatable")
@@ -41,7 +45,12 @@ def main(argv=None) -> int:
             command.add_argument("--cache-dir", help="Optional pre-prepared engine cache")
     args = parser.parse_args(argv)
     try:
-        if args.command == "describe":
+        if args.command == "install-skill":
+            from .skill import install
+            target = install(args.destination, java_home=args.java_home, cache_dir=args.cache_dir)
+            print(json.dumps({"status": "ok", "skill_directory": str(target), "implicit_invocation": True}))
+            return 0
+        elif args.command == "describe":
             result = Client().describe()
         elif args.command == "doctor":
             result = Client().doctor()

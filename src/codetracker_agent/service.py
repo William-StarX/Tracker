@@ -45,7 +45,8 @@ def create_mcp_server(client: Client):
         return CallToolResult(content=[TextContent(type="text", text=json.dumps(result, ensure_ascii=False))],
                               structuredContent=result, isError=result["status"] == "error")
 
-    return Server(SERVER_NAME, version=VERSION, on_list_tools=list_tools, on_call_tool=call_tool)
+    return Server(SERVER_NAME, version=VERSION, instructions=catalog["instructions"],
+                  on_list_tools=list_tools, on_call_tool=call_tool)
 
 
 async def run_stdio(client: Client) -> None:
