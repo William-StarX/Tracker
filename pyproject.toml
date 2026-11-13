@@ -20,8 +20,8 @@ test = ["pytest>=8,<10", "build>=1,<2"]
 codetracker-agent = "codetracker_agent.cli:main"
 
 [project.urls]
-Repository = "https://github.com/William-StarX/Tracker"
-Issues = "https://github.com/William-StarX/Tracker/issues"
+Repository = "https://github.com/William-StarX/TraceTrail"
+Issues = "https://github.com/William-StarX/TraceTrail/issues"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/codetracker_agent"]

@@ -19,7 +19,7 @@ TraceTrail 的命令行入口为 `codetracker-agent`，Python 包为 `codetracke
 Use `codetracker-agent` for TraceTrail's command line and `codetracker_agent` for its Python package.
 
 ```sh
-python -m pip install "git+https://github.com/William-StarX/Tracker.git"
+python -m pip install "git+https://github.com/William-StarX/TraceTrail.git"
 ```
 
 ```python
@@ -91,7 +91,7 @@ codetracker-agent call --request request.json
 A Python agent can use `Client` directly; an agent that can run commands can use the JSON CLI. To expose both tools to an MCP host, install the service dependencies and generate a configuration:
 
 ```sh
-python -m pip install "codetracker-agent[server] @ git+https://github.com/William-StarX/Tracker.git"
+python -m pip install "codetracker-agent[server] @ git+https://github.com/William-StarX/TraceTrail.git"
 codetracker-agent config codex --root /path/to/repo
 ```
 
