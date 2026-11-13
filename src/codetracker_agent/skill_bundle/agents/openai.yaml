@@ -1,5 +1,5 @@
 interface:
-  display_name: "CodeTracker 项目梳理与调查"
+  display_name: "TraceTrail 项目梳理与调查"
   short_description: "在旧项目接管与缺陷调查阶段主动梳理结构、追踪历史并保留版本证据"
   default_prompt: "使用 $codetracker-investigate 在项目接管与缺陷调查阶段主动收集证据。"
 policy:

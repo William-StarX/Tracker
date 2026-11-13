@@ -4,9 +4,9 @@
 
 | 阶段 | 应使用的组件与操作 |
 |---|---|
-| 接管陌生 Java 旧项目、制定改动计划前 | CodeTracker overview；已有有效结构证据或已知具体目标时可跳过 |
-| 缺陷调查、追查代码沿革 | CodeTracker trace，限定相关方法、变量或代码块 |
-| 模块、依赖、入口或测试结构变化，后续工作依赖旧概览 | CodeTracker overview 更新结构证据 |
+| 接管陌生 Java 旧项目、制定改动计划前 | TraceTrail overview；已有有效结构证据或已知具体目标时可跳过 |
+| 缺陷调查、追查代码沿革 | TraceTrail trace，限定相关方法、变量或代码块 |
+| 模块、依赖、入口或测试结构变化，后续工作依赖旧概览 | TraceTrail overview 更新结构证据 |
 | Java 代码审查、完成一批实现/重构/修复 | RefactoringMiner review，或无 Git 时 directories |
 | 最终 Java 候选发生了后续变化、准备交付 | RefactoringMiner 对最终内容重新审查 |
 

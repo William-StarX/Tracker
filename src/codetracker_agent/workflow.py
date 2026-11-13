@@ -1,7 +1,7 @@
 """Portable guidance for agent checkpoints; the host owns task scheduling."""
 
 INSTRUCTIONS = (
-    "Use CodeTracker proactively at relevant project checkpoints. Run overview before planning work in an "
+    "Use TraceTrail proactively at relevant project checkpoints. Run overview before planning work in an "
     "unfamiliar existing Java project. During bug investigation or historical review, trace the relevant "
     "committed method, variable or block before drawing conclusions about its evolution. Confirm selected_element "
     "and resolved commit; editor-buffer line numbers can differ. Preserve partial/error status. "

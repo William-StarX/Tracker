@@ -1,36 +1,22 @@
-# CodeTracker Agent
+# TraceTrail
 
-SDK / 服务 **1.5.0** · 结果接口 **1.0** · CodeTracker **3.0**
+SDK / 服务 **1.5.0** · 结果接口 **1.0** · 历史引擎 CodeTracker **3.0**
 
-SDK / service **1.5.0** · Result interface **1.0** · CodeTracker **3.0**
+SDK / service **1.5.0** · Result interface **1.0** · History engine CodeTracker **3.0**
 
-拿到一个旧 Java 仓库，Agent 往往先要弄清两件事：从哪里开始读，以及眼前这段代码是怎么来的。
+TraceTrail 帮 Agent 接手旧 Java 项目和调查缺陷。先用 `overview` 找出模块、入口和测试，再用 `trace` 追踪关键方法、变量或代码块的历史。项目概览由本项目的 Python 扫描器完成，历史追踪使用开源项目 CodeTracker 的库。
 
-An agent opening an unfamiliar Java repository usually has two questions: where to start reading, and how the code in front of it got there.
+TraceTrail helps agents take on existing Java projects and investigate bugs. Start with `overview` to find modules, entry points, and tests, then use `trace` to follow a relevant method, variable, or block through history. This project's Python scanner produces the overview; the open-source CodeTracker library handles history tracking.
 
-Tracker  为这两件事提供了两个入口。`overview` 扫描项目结构，找出模块、入口和测试线索；`trace` 从指定提交出发，沿历史追踪一个方法、局部变量或代码块。前者是本项目编写的扫描器，后者调用开源项目 CodeTracker 库。
-
-Tracker  provides an entry point for each. `overview` scans the project for modules, entry points, and tests. `trace` follows a method, local variable, or block through history, starting at a chosen commit. The overview scanner belongs to this project; history tracking uses the authors' CodeTracker library.
-
-## 从项目里找到调查入口<br>Finding a place to start
-
-刚接手项目，可以先跑概览。模块和依赖声明帮助 Agent 判断要读哪一部分，包结构、入口注解和测试文件则给出具体的阅读位置。Root Agent 可以据此安排后续调查，再阅读代码确认模块职责。
-
-Run an overview when first taking on a project. Module and dependency declarations help the agent choose a part of the repository to inspect. Packages, entry-point annotations, and test files point to specific places to read. A root agent can use these leads to plan the investigation, then check the source to establish what each module does.
-
-如果已经知道问题出在某个方法，就直接追踪那个元素。例如，一个日期判断为何多了一层条件，可以沿历史找到相关修改，再阅读提交说明、前后实现和测试。即使代码曾改名或移动，Tracker 也会尝试恢复它的沿革。
-
-If the problem is already narrowed down to a method, trace that element directly. To investigate an extra condition in a date check, for example, follow its history to the relevant changes, then read the commit messages, earlier implementations, and tests. Tracker attempts to follow the element even when it has been renamed or moved.
-
-沿着这些线索，Agent 可以阅读历史实现、对照需求，并选择回归测试。修复完成后，可以使用 [RefactoringMiner Agent](https://github.com/William-StarX/RefactoringMiner) 审查补丁。
-
-The agent can follow these leads to read earlier implementations, check requirements, and choose regression tests. Once a fix is ready, [RefactoringMiner Agent](https://github.com/William-StarX/RefactoringMiner) can help review the patch.
-
-## 先跑一次项目概览<br>Start with the project layout
+## 快速开始：查看项目结构<br>Quick start: explore the project
 
 概览使用 **Python 3.11+** 运行，基础 SDK 基于 Python 标准库，可以扫描普通源码目录或 Git 仓库。在 Git 仓库中还可收集近期活动信息。下方从 GitHub 安装的命令需要 Git。
 
 Overview runs on **Python 3.11+**. The base SDK uses the Python standard library and scans both ordinary source directories and Git repositories, with recent activity available for Git projects. The GitHub installation command below requires Git.
+
+TraceTrail 的命令行入口为 `codetracker-agent`，Python 包为 `codetracker_agent`。
+
+Use `codetracker-agent` for TraceTrail's command line and `codetracker_agent` for its Python package.
 
 ```sh
 python -m pip install "git+https://github.com/William-StarX/Tracker.git"
@@ -47,7 +33,7 @@ print(report["status"])
 print(report["result"])
 ```
 
-## 追踪一段代码<br>Follow a method, variable, or block
+## 调查一段代码的历史<br>Investigate a piece of code
 
 历史追踪另需 **Java 17+ 和本地 Git 仓库历史**；首次准备引擎需要 **JDK 和网络**：
 
@@ -98,7 +84,7 @@ codetracker-agent call --request request.json
 
 `call` also accepts standard input. `describe` returns parameters for `overview` and `trace`, response schemas, and checkpoint guidance.
 
-## 在项目中持续使用<br>Keep it available during a project
+## 交给 Agent 使用<br>Use it with an agent
 
 已有 Python Agent 可以直接用上面的 `Client`，能运行命令的 Agent 可以调用 JSON CLI。要让支持 MCP 的宿主发现这两个工具，先安装服务依赖并生成配置：
 
@@ -157,7 +143,7 @@ codetracker-agent http --root /path/to/repo --port 8766
 
 The service exposes `/health`, `/tools`, `/invoke`, and `/mcp` at `127.0.0.1`, authenticated with a Bearer token. Set `--root` to a regular independent clone. For access from another machine, connect through a trusted TLS channel and use server-side paths. See the [API](docs/API.md).
 
-## 保存调查结果<br>Keep the investigation results
+## 读取并保存调查结果<br>Read and save the findings
 
 `status` 表示 `ok`、`partial` 或 `error`，`result` 保存组件报告。概览返回结构线索及文件位置，追踪返回选中元素、提交、变化事件和前后位置，方便 Agent 在源码与历史之间查阅。
 
@@ -171,11 +157,29 @@ Full reports are returned by default. For a shorter response, use `format="compa
 
 Python runs the overview, while tracking starts Java per request. Each Client / service instance handles one analysis at a time and returns `BUSY` while occupied. Use `timeout` to set the tracking engine timeout and `memory_mb` to adjust the Java heap ceiling, which defaults to 2048 MiB. More options are listed in the [API](docs/API.md).
 
-## CodeTracker 的研究来源<br>The research behind CodeTracker
+## TraceTrail 增加了什么<br>What TraceTrail adds
 
-历史追踪基于作者的 [jodavimehran/code-tracker](https://github.com/jodavimehran/code-tracker)，固定使用 Maven `io.github.jodavimehran:code-tracker:3.0`。相关研究包括：
+- **先给 Agent 一份项目地图。** 自建概览扫描器收集 Maven/Gradle 声明、包结构、入口和测试线索，并附上文件位置。普通源码目录即可开始梳理，这一步只需 Python。
 
-History tracking uses the authors' [jodavimehran/code-tracker](https://github.com/jodavimehran/code-tracker), pinned to Maven `io.github.jodavimehran:code-tracker:3.0`. Relevant research includes:
+  **Give the agent a project map first.** The custom overview scanner collects Maven/Gradle declarations, packages, entry points, and test hints with file locations. It can start from an ordinary source directory using only Python.
+
+- **从一个代码位置开始调查。** 传入提交、文件和行号，组件负责定位元素、调用 CodeTracker，并整理选中对象、变化事件和前后位置。Agent 可以先缩小范围，再追踪与问题有关的代码。
+
+  **Start an investigation from a source location.** Supply a commit, file, and line. The component locates the element, calls CodeTracker, and organizes the selected target, change events, and before/after locations. The agent can narrow its search before tracing the code relevant to the problem.
+
+- **让调查结果接得上后续工作。** SDK、命令行和服务返回同一套报告；Skill/MCP 指引覆盖项目接管、缺陷调查和结构更新。把提交、目标和报告位置保留在任务记录中，后续 Agent 就有明确的复查入口。接入与结果一致性见 [验证记录](docs/VERIFICATION.md)。
+
+  **Keep findings useful for the next task.** The SDK, command line, and services return the same report format. Skill/MCP instructions cover onboarding, bug investigation, and structural updates. Recording the commit, target, and report location gives the next agent a clear place to resume. See the [integration and result checks](docs/VERIFICATION.md).
+
+历史引擎包含两处经过差分测试的 RefactoringMiner 字符串辅助计算优化；基础 SDK 使用 Python 标准库，Java 在历史查询时按需启动。修复完成后，可用 [RefactoringMiner Agent](https://github.com/William-StarX/RefactoringMiner) 审查补丁。
+
+The history engine includes two local optimizations to RefactoringMiner's string helpers, checked by differential tests. The base SDK uses the Python standard library, and Java starts on demand for history queries. Once a fix is ready, use [RefactoringMiner Agent](https://github.com/William-StarX/RefactoringMiner) to review the patch.
+
+## 开源基础与论文<br>Open-source foundation and papers
+
+历史追踪采用 CodeTracker 的重构感知追踪思路，调用作者的 [jodavimehran/code-tracker](https://github.com/jodavimehran/code-tracker)，固定使用 Maven `io.github.jodavimehran:code-tracker:3.0`。相关研究包括：
+
+History analysis follows CodeTracker's refactoring-aware tracking approach and uses the authors' [jodavimehran/code-tracker](https://github.com/jodavimehran/code-tracker), pinned to Maven `io.github.jodavimehran:code-tracker:3.0`. Relevant research includes:
 
 1. **代码块历史追踪** — Mohammed Tayeeb Hasan, Nikolaos Tsantalis, Pouria Alikhanifard. *Refactoring-aware Block Tracking in Commit History*. **IEEE Transactions on Software Engineering (TSE)**, 50(12), 3330–3350, **2024 年 12 月**. [DOI: 10.1109/TSE.2024.3484586](https://doi.org/10.1109/TSE.2024.3484586)。对应代码块在重构和其他变化中的历史追踪能力。
 
@@ -188,16 +192,6 @@ History tracking uses the authors' [jodavimehran/code-tracker](https://github.co
 书目信息依据 [上游引用说明](https://github.com/jodavimehran/code-tracker#how-to-cite-codetracker) 和 [作者论文目录](https://users.encs.concordia.ca/~nikolaos/publications.html)。底层依赖 RefactoringMiner 3.0.11，其研究来源见 [RefactoringMiner 的引用说明](https://github.com/tsantalis/RefactoringMiner/blob/master/documentation/research.md)。
 
 Bibliographic details follow the [upstream citation guide](https://github.com/jodavimehran/code-tracker#how-to-cite-codetracker) and the [author's publication list](https://users.encs.concordia.ca/~nikolaos/publications.html). The engine also depends on RefactoringMiner 3.0.11; see its [research references](https://github.com/tsantalis/RefactoringMiner/blob/master/documentation/research.md).
-
-## 关于项目概览和封装<br>About the scanner and integration
-
-项目概览由本项目的 Python 扫描器完成，历史追踪使用 CodeTracker。SDK、命令行和服务将 Agent 指定的提交与代码位置传给引擎，再把结果整理为 JSON 报告，便于继续调查和交接。
-
-This project's Python scanner produces the overview, while CodeTracker handles history. The SDK, command line, and services pass the agent's chosen commit and source location to the engine, then return a JSON report for further investigation or handoff.
-
-分析引擎包含 RefactoringMiner 的两处局部优化：`StringDistance.java` 和 `ReplacementUtil.keepReservedTokens`，通过减少字符串计算和临时分配支持历史分析，结果经过差分测试。
-
-The engine includes two local RefactoringMiner optimizations, `StringDistance.java` and `ReplacementUtil.keepReservedTokens`, to reduce string computation and temporary allocation during history analysis. Results have been checked with differential tests.
 
 ## 注意事项<br>Attention
 
