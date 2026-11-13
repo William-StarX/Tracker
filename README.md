@@ -8,9 +8,9 @@ SDK / service **1.5.0** · Result interface **1.0** · CodeTracker **3.0**
 
 An agent opening an unfamiliar Java repository usually has two questions: where to start reading, and how the code in front of it got there.
 
-CodeTracker Agent 为这两件事提供了两个入口。`overview` 扫描项目结构，找出模块、入口和测试线索；`trace` 从指定提交出发，沿历史追踪一个方法、局部变量或代码块。前者是本项目编写的扫描器，后者调用 CodeTracker 作者库。
+Tracker  为这两件事提供了两个入口。`overview` 扫描项目结构，找出模块、入口和测试线索；`trace` 从指定提交出发，沿历史追踪一个方法、局部变量或代码块。前者是本项目编写的扫描器，后者调用开源项目 CodeTracker 库。
 
-CodeTracker Agent provides an entry point for each. `overview` scans the project for modules, entry points, and tests. `trace` follows a method, local variable, or block through history, starting at a chosen commit. The overview scanner belongs to this project; history tracking uses the authors' CodeTracker library.
+Tracker  provides an entry point for each. `overview` scans the project for modules, entry points, and tests. `trace` follows a method, local variable, or block through history, starting at a chosen commit. The overview scanner belongs to this project; history tracking uses the authors' CodeTracker library.
 
 ## 从项目里找到调查入口<br>Finding a place to start
 
@@ -18,9 +18,9 @@ CodeTracker Agent provides an entry point for each. `overview` scans the project
 
 Run an overview when first taking on a project. Module and dependency declarations help the agent choose a part of the repository to inspect. Packages, entry-point annotations, and test files point to specific places to read. A root agent can use these leads to plan the investigation, then check the source to establish what each module does.
 
-如果已经知道问题出在某个方法，就直接追踪那个元素。例如，一个日期判断为何多了一层条件，可以沿历史找到相关修改，再阅读提交说明、前后实现和测试。即使代码曾改名或移动，CodeTracker 也会尝试恢复它的沿革。
+如果已经知道问题出在某个方法，就直接追踪那个元素。例如，一个日期判断为何多了一层条件，可以沿历史找到相关修改，再阅读提交说明、前后实现和测试。即使代码曾改名或移动，Tracker 也会尝试恢复它的沿革。
 
-If the problem is already narrowed down to a method, trace that element directly. To investigate an extra condition in a date check, for example, follow its history to the relevant changes, then read the commit messages, earlier implementations, and tests. CodeTracker attempts to follow the element even when it has been renamed or moved.
+If the problem is already narrowed down to a method, trace that element directly. To investigate an extra condition in a date check, for example, follow its history to the relevant changes, then read the commit messages, earlier implementations, and tests. Tracker attempts to follow the element even when it has been renamed or moved.
 
 沿着这些线索，Agent 可以阅读历史实现、对照需求，并选择回归测试。修复完成后，可以使用 [RefactoringMiner Agent](https://github.com/William-StarX/RefactoringMiner) 审查补丁。
 
